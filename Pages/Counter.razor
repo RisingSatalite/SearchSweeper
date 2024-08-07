@@ -1,0 +1,263 @@
+﻿@page "/counter"
+
+using System.Timers;
+
+<h1>SearchSweeper</h1>
+
+@if (map != null)
+{
+    <div>Tiles to go @tileToGo</div>
+    <table class="table">
+        <thead>
+            <tr>
+                @for (int j = 0; j < width; j++)
+                {
+                    <th>Column @j</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < map.Length; i++)
+            {
+                <tr>
+                    @for (int j = 0; j < map[i].Length; j++)
+                    {
+                        var num = i;  // Local variable to store the current row index
+                        var num2 = j; // Local variable to store the current column index
+
+                        <td>
+                            <button @onclick="@(e => CheckMine(num, num2))">
+                                @if(!map[i][j].Revealed){
+                                    <div>Something</div>
+                                }else{
+                                    @map[i][j].ObjectType;
+                                }
+                            </button>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    public static int height = 10;
+    public static int width = 10;
+    public int mines = 12;
+    public int tileToGo = 0;
+
+    public TileState[][] map = new TileState[height][];
+
+    private Timer _timer;//Automatically reveal tiles
+
+    protected override void OnInitialized()
+    {
+        // Call your initialization function here
+        IntializeMap();
+    }
+
+    public class TileState{
+        public string ObjectType;
+        public bool Revealed;
+
+        public TileState(string objectType)
+        {
+            ObjectType = objectType;
+            Revealed = false;
+        }
+
+        public void Reveal()
+        {
+            Revealed = true;
+        }
+    }
+
+    public void IntializeMap()
+    {
+        // Initializing map
+        for (int i = 0; i < map.Length; i++)
+        {
+            map[i] = new TileState[width];
+            for (int j = 0; j < map[i].Length; j++)
+            {
+                map[i][j] = new TileState("null");
+            }
+        }
+
+        // Add mines
+        Random random = new Random();
+        for (int i = 0; i < mines; i++)
+        {
+            int randomInt = random.Next(map.Length);
+            int randomInt2 = random.Next(map[randomInt].Length);
+            if (map[randomInt][randomInt2].ObjectType == "null")
+            {
+                map[randomInt][randomInt2].ObjectType = "Mine";
+            }
+            else
+            {
+                // Square that already has a mine has been selected, retry
+                i -= 1;
+            }
+        }
+
+        // Set all else notMine
+        for (int i = 0; i < map.Length; i++)
+        {
+            for (int j = 0; j < map[i].Length; j++)
+            {
+                if (map[i][j].ObjectType == "null")
+                {
+                    map[i][j].ObjectType = "Notmine";
+                    tileToGo += 1;
+                }
+            }
+        }
+    }
+
+    private void CheckMine(int i, int j)
+    {
+        // Logging for debugging
+        Console.WriteLine($"Button clicked at ({i}, {j})");
+        map[i][j].Reveal();
+
+        if (map[i][j].ObjectType == "Mine")
+        {
+            Console.WriteLine("Mine found! Boom");
+            map[i][j].ObjectType = "Boom";
+        }
+        //else if (Int32.TryParse(map[i][j], out x))
+        //{
+        //To check if it is an int 
+        //}
+        else
+        {
+            Console.WriteLine($"Safe: {i},{j}");
+            map[i][j].ObjectType = SurroundingMineCheck(i, j).ToString();
+            tileToGo -= 1;
+        }
+    }
+
+    public void PlaceMine()
+    {
+        Random random = new Random();
+        for (int i = 0; i < 1; i++)
+        {
+            int randomInt = random.Next(map.Length);
+            int randomInt2 = random.Next(map[randomInt].Length);
+            if (map[randomInt][randomInt2].ObjectType == "null")
+            {
+                map[randomInt][randomInt2].ObjectType = "Mine";
+            }
+            else
+            {
+                // Square that already has a mine has been selected, retry
+                i -= 1;
+            }
+        }
+    }
+
+    public int SurroundingMineCheck(int i, int j)
+    {
+        // Implement the logic for checking surrounding mines here
+        int mineCount = 0;
+        int[,] directions = new int[,]
+        {
+        { -1, -1 }, { -1, 0 }, { -1, 1 },
+        { 0, -1 },             { 0, 1 },
+        { 1, -1 },  { 1, 0 },  { 1, 1 }
+        };
+
+        // Array to keep track of visited cells
+        bool[,] visited = new bool[height, width];
+
+        mineCount = SurroundingMineCheckHelper(i, j, visited);
+
+        if(mineCount == 0)
+        {
+            //SurroundingMineRevealer(i, j, visited);
+        }
+
+        return mineCount;
+    }
+
+    private int SurroundingMineCheckHelper(int i, int j, bool[,] visited)
+    {
+        // If this cell is already visited, return
+        if (visited[i, j])
+            return 0;
+
+        // Mark this cell as visited
+        visited[i, j] = true;
+
+        // Count mines around this cell
+        int mineCount = 0;
+        int[,] directions = new int[,]
+        {
+        { -1, -1 }, { -1, 0 }, { -1, 1 },
+        { 0, -1 },             { 0, 1 },
+        { 1, -1 },  { 1, 0 },  { 1, 1 }
+        };
+
+        for (int k = 0; k < directions.GetLength(0); k++)
+        {
+            int newRow = i + directions[k, 0];
+            int newCol = j + directions[k, 1];
+
+            if (IsOnMap(newRow, newCol) && map[newRow][newCol].ObjectType == "Mine")
+            {
+                mineCount++;
+            }
+        }
+
+        // If there are no mines around, check surrounding cells
+
+        return mineCount;
+    }
+
+    private int SurroundingMineRevealer(int i, int j, bool[,] visited)
+    {
+        // If this cell is already visited, return
+        if (visited[i, j])
+            return 0;
+
+        // Mark this cell as visited
+        visited[i, j] = true;
+
+        // Count mines around this cell
+        int mineCount = 0;
+        int[,] directions = new int[,]
+        {
+        { -1, -1 }, { -1, 0 }, { -1, 1 },
+        { 0, -1 },             { 0, 1 },
+        { 1, -1 },  { 1, 0 },  { 1, 1 }
+        };
+
+        // If there are no mines around, check surrounding cells
+        if (mineCount == 0)
+        {
+            for (int k = 0; k < directions.GetLength(0); k++)
+            {
+                int newRow = i + directions[k, 0];
+                int newCol = j + directions[k, 1];
+
+                if (IsOnMap(newRow, newCol) && !visited[newRow, newCol])
+                {
+                    mineCount += SurroundingMineCheckHelper(newRow, newCol, visited);
+                }
+            }
+        }
+
+        return mineCount;
+    }
+
+    private bool IsOnMap(int i, int j)
+    {
+        return i >= 0 && i < height && j >= 0 && j < width;
+    }
+}
