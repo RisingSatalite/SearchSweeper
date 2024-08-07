@@ -187,6 +187,8 @@ else
 
     private int SurroundingMineCheckHelper(int i, int j, bool[,] visited)
     {
+        //Check if there are 0 mine surrounding it
+
         // If this cell is already visited, return
         if (visited[i, j])
             return 0;
@@ -214,8 +216,6 @@ else
             }
         }
 
-        // If there are no mines around, check surrounding cells
-
         return mineCount;
     }
 
@@ -224,6 +224,11 @@ else
         // If this cell is already visited, return
         if (visited[i, j])
             return 0;
+
+        if (map[i][j].Revealed)
+        {
+            return 0;
+        }
 
         // Mark this cell as visited
         visited[i, j] = true;
@@ -240,6 +245,8 @@ else
         // If there are no mines around, check surrounding cells
         if (mineCount == 0)
         {
+            map[i][j].Reveal();
+
             for (int k = 0; k < directions.GetLength(0); k++)
             {
                 int newRow = i + directions[k, 0];
