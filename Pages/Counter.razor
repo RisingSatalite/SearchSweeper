@@ -26,7 +26,7 @@
                         <td>
                             <button @onclick="@(e => CheckMine(num, num2))">
                                 @if(!map[i][j].Revealed){
-                                    <div>Something</div>
+                                    <div>O</div>
                                 }else{
                                     @map[i][j].ObjectType;
                                 }
