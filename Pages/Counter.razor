@@ -4,7 +4,7 @@
 
 @if (map != null)
 {
-    <div>Tiles to go @tileToGo</div>
+    <div>Tiles to go @tileToGo Mines @mines</div>
     <table class="table">
         <thead>
             <tr>
@@ -26,7 +26,7 @@
                         <td>
                             <button @onclick="@(e => CheckMine(num, num2))">
                                 @if(!map[i][j].Revealed){
-                                    <div>O</div>
+                                    <div> </div>
                                 }else{
                                     @map[i][j].ObjectType;
                                 }
@@ -51,8 +51,6 @@ else
 
     public TileState[][] map = new TileState[height][];
 
-    private Timer _timer;//Automatically reveal tiles?
-
     protected override void OnInitialized()
     {
         // Call your initialization function here
@@ -62,6 +60,7 @@ else
     public class TileState{
         public string ObjectType;
         public bool Revealed;
+        public string Flagged = "";
 
         public TileState(string objectType)
         {
