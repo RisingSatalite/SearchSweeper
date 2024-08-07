@@ -10,7 +10,7 @@
             <tr>
                 @for (int j = 0; j < width; j++)
                 {
-                    <th>Column @j</th>
+                    //<th>Column @j</th>
                 }
             </tr>
         </thead>
@@ -25,10 +25,16 @@
 
                         <td>
                             <button @onclick="@(e => CheckMine(num, num2))">
-                                @if(!map[i][j].Revealed){
+                                @if (!map[i][j].Revealed) {
                                     <div> </div>
-                                }else{
-                                    @map[i][j].ObjectType;
+                                }
+                                else if (map[i][j].IsFlagged())
+                                {
+                                    <div>@map[i][j].Flagged</div>
+                                }
+                                else {
+                                    @map[i][j].ObjectType
+                                    ;
                                 }
                             </button>
                         </td>
@@ -80,6 +86,15 @@ else
                 return true;
             }
             return false;
+        }
+
+        public bool IsFlagged()
+        {
+            if(Flagged == "")
+            {
+                return false;
+            }
+            return true;
         }
     }
 
