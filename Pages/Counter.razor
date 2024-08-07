@@ -120,29 +120,6 @@ else
         }
     }
 
-    private void CheckMine(int i, int j)
-    {
-        // Logging for debugging
-        Console.WriteLine($"Button clicked at ({i}, {j})");
-        map[i][j].Reveal();
-
-        if (map[i][j].ObjectType == "Mine")
-        {
-            Console.WriteLine("Mine found! Boom");
-            map[i][j].ObjectType = "Boom";
-        }
-        //else if (Int32.TryParse(map[i][j], out x))
-        //{
-        //To check if it is an int 
-        //}
-        else
-        {
-            Console.WriteLine($"Safe: {i},{j}");
-            map[i][j].ObjectType = SurroundingMineCheck(i, j).ToString();
-            tileToGo -= 1;
-        }
-    }
-
     public void PlaceMine()
     {
         Random random = new Random();
@@ -159,6 +136,29 @@ else
                 // Square that already has a mine has been selected, retry
                 i -= 1;
             }
+        }
+    }
+
+    private void CheckMine(int i, int j)
+    {
+        // Logging for debugging
+        Console.WriteLine($"Button clicked at ({i}, {j})");
+        map[i][j].Reveal();
+
+        if (map[i][j].ObjectType == "Mine")
+        {
+            Console.WriteLine("Mine found! Boom");
+            map[i][j].ObjectType = "Boom";
+        }
+        //else if (Int32.TryParse(map[i][j], out x))
+        //{
+        //To check if it is an int
+        //}
+        else
+        {
+            Console.WriteLine($"Safe: {i},{j}");
+            map[i][j].ObjectType = SurroundingMineCheck(i, j).ToString();
+            tileToGo -= 1;
         }
     }
 
@@ -182,7 +182,6 @@ else
         {
             //SurroundingMineRevealer(i, j, visited);
         }
-
         return mineCount;
     }
 
