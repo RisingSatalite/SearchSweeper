@@ -43,6 +43,7 @@
             }
         </tbody>
     </table>
+    <button>Flag</button><button>Clear tile</button>
 }
 else
 {
@@ -54,6 +55,8 @@ else
     public static int width = 10;
     public int mines = 12;
     public int tileToGo = 0;
+
+    public bool placeFlag = false;//Use to place flags
 
     public TileState[][] map = new TileState[height][];
 
