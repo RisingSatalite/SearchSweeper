@@ -1,7 +1,5 @@
 ﻿@page "/counter"
 
-using System.Timers;
-
 <h1>SearchSweeper</h1>
 
 @if (map != null)
@@ -53,7 +51,7 @@ else
 
     public TileState[][] map = new TileState[height][];
 
-    private Timer _timer;//Automatically reveal tiles
+    private Timer _timer;//Automatically reveal tiles?
 
     protected override void OnInitialized()
     {
@@ -74,6 +72,15 @@ else
         public void Reveal()
         {
             Revealed = true;
+        }
+
+        public bool IsMine()
+        {
+            if(ObjectType == "Mine"||ObjectType == "Boom")
+            {
+                return true;
+            }
+            return false;
         }
     }
 
@@ -145,7 +152,7 @@ else
         Console.WriteLine($"Button clicked at ({i}, {j})");
         map[i][j].Reveal();
 
-        if (map[i][j].ObjectType == "Mine")
+        if (map[i][j].IsMine())
         {
             Console.WriteLine("Mine found! Boom");
             map[i][j].ObjectType = "Boom";
@@ -157,46 +164,18 @@ else
         else
         {
             Console.WriteLine($"Safe: {i},{j}");
-            map[i][j].ObjectType = SurroundingMineCheck(i, j).ToString();
-            tileToGo -= 1;
+            int surroundingMines = SurroundingMineCheck(i, j);
+            map[i][j].ObjectType = surroundingMines.ToString();
+
+            if (surroundingMines == 0)
+            {
+                RevealSurroundingTiles(i, j);
+            }
         }
     }
 
     public int SurroundingMineCheck(int i, int j)
     {
-        // Implement the logic for checking surrounding mines here
-        int mineCount = 0;
-        int[,] directions = new int[,]
-        {
-        { -1, -1 }, { -1, 0 }, { -1, 1 },
-        { 0, -1 },             { 0, 1 },
-        { 1, -1 },  { 1, 0 },  { 1, 1 }
-        };
-
-        // Array to keep track of visited cells
-        bool[,] visited = new bool[height, width];
-
-        mineCount = SurroundingMineCheckHelper(i, j, visited);
-
-        if(mineCount == 0)
-        {
-            //SurroundingMineRevealer(i, j, visited);
-        }
-        return mineCount;
-    }
-
-    private int SurroundingMineCheckHelper(int i, int j, bool[,] visited)
-    {
-        //Check if there are 0 mine surrounding it
-
-        // If this cell is already visited, return
-        if (visited[i, j])
-            return 0;
-
-        // Mark this cell as visited
-        visited[i, j] = true;
-
-        // Count mines around this cell
         int mineCount = 0;
         int[,] directions = new int[,]
         {
@@ -210,7 +189,7 @@ else
             int newRow = i + directions[k, 0];
             int newCol = j + directions[k, 1];
 
-            if (IsOnMap(newRow, newCol) && map[newRow][newCol].ObjectType == "Mine")
+            if (IsOnMap(newRow, newCol) && map[newRow][newCol].IsMine())
             {
                 mineCount++;
             }
@@ -219,22 +198,12 @@ else
         return mineCount;
     }
 
-    private int SurroundingMineRevealer(int i, int j, bool[,] visited)
+    private void RevealSurroundingTiles(int i, int j)
     {
-        // If this cell is already visited, return
-        if (visited[i, j])
-            return 0;
+        Queue<(int, int)> queue = new Queue<(int, int)>();
+        queue.Enqueue((i, j));
+        bool[,] visited = new bool[height, width];
 
-        if (map[i][j].Revealed)
-        {
-            return 0;
-        }
-
-        // Mark this cell as visited
-        visited[i, j] = true;
-
-        // Count mines around this cell
-        int mineCount = 0;
         int[,] directions = new int[,]
         {
         { -1, -1 }, { -1, 0 }, { -1, 1 },
@@ -242,26 +211,34 @@ else
         { 1, -1 },  { 1, 0 },  { 1, 1 }
         };
 
-        // If there are no mines around, check surrounding cells
-        if (mineCount == 0)
+        while (queue.Count > 0)
         {
-            map[i][j].Reveal();
+            (int row, int col) = queue.Dequeue();
 
-            for (int k = 0; k < directions.GetLength(0); k++)
+            if (!IsOnMap(row, col) || visited[row, col])
+                continue;
+
+            visited[row, col] = true;
+            map[row][col].Reveal();
+
+            int surroundingMines = SurroundingMineCheck(row, col);
+            map[row][col].ObjectType = surroundingMines.ToString();
+
+            if (surroundingMines == 0)
             {
-                int newRow = i + directions[k, 0];
-                int newCol = j + directions[k, 1];
-
-                if (IsOnMap(newRow, newCol) && !visited[newRow, newCol])
+                for (int k = 0; k < directions.GetLength(0); k++)
                 {
-                    mineCount += SurroundingMineCheckHelper(newRow, newCol, visited);
+                    int newRow = row + directions[k, 0];
+                    int newCol = col + directions[k, 1];
+
+                    if (IsOnMap(newRow, newCol) && !visited[newRow, newCol])
+                    {
+                        queue.Enqueue((newRow, newCol));
+                    }
                 }
             }
         }
-
-        return mineCount;
     }
-
     private bool IsOnMap(int i, int j)
     {
         return i >= 0 && i < height && j >= 0 && j < width;
