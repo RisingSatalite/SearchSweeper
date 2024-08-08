@@ -24,13 +24,13 @@
                         var num2 = j; // Local variable to store the current column index
 
                         <td>
-                            <button @onclick="@(e => CheckMine(num, num2))">
-                                @if (!map[i][j].Revealed) {
-                                    <div> </div>
-                                }
-                                else if (map[i][j].IsFlagged())
+                            <button @onclick="@(e => CheckTile(num, num2))">
+                                @if (map[i][j].IsFlagged())
                                 {
                                     <div>@map[i][j].Flagged</div>
+                                }
+                                else if (!map[i][j].Revealed) {
+                                    <div> </div>
                                 }
                                 else {
                                     @map[i][j].ObjectType
@@ -43,7 +43,8 @@
             }
         </tbody>
     </table>
-    <button>Flag</button><button>Clear tile</button>
+    <button @onclick="@(e => FlagMode())">Flag</button>
+    <button @onclick="@(e => TileMode())">Clear tile</button>
 }
 else
 {
@@ -55,6 +56,7 @@ else
     public static int width = 10;
     public int mines = 12;
     public int tileToGo = 0;
+    public string selectedFlag= "Flag"; 
 
     public bool placeFlag = false;//Use to place flags
 
@@ -99,6 +101,26 @@ else
             }
             return true;
         }
+
+        public void SetFlag(string flagString)
+        {
+            Flagged = flagString;
+        }
+
+        public void UnFlag()
+        {
+            Flagged = "";
+        }
+    }
+
+    public void FlagMode()
+    {
+        placeFlag = true;
+    }
+
+    public void TileMode()
+    {
+        placeFlag = false;
     }
 
     public void IntializeMap()
@@ -160,6 +182,21 @@ else
                 // Square that already has a mine has been selected, retry
                 i -= 1;
             }
+        }
+    }
+
+    private void CheckTile(int i, int j)
+    {
+        if (map[i][j].IsFlagged())
+        {
+            map[i][j].UnFlag();
+        }
+        else if(placeFlag){
+            FlagTile(i, j);
+        }
+        else
+        {
+            CheckMine(i, j);
         }
     }
 
@@ -256,6 +293,11 @@ else
             }
         }
     }
+
+    public void FlagTile(int i, int j){
+        map[i][j].SetFlag(selectedFlag);
+    }
+
     private bool IsOnMap(int i, int j)
     {
         return i >= 0 && i < height && j >= 0 && j < width;
