@@ -56,7 +56,8 @@ else
     public static int width = 10;
     public int mines = 12;
     public int tileToGo = 0;
-    public string selectedFlag= "Flag"; 
+    public string selectedFlag= "Flag";
+    public bool firstMove = true;
 
     public bool placeFlag = false;//Use to place flags
 
@@ -82,6 +83,16 @@ else
         public void Reveal()
         {
             Revealed = true;
+        }
+
+        public bool NoLongerMine()
+        {
+            if (this.IsMine())
+            {
+                ObjectType = "Notmine";
+                return true;//Because is not no longer mine
+            }
+            return false;//Because was not never mind
         }
 
         public bool IsMine()
@@ -185,6 +196,34 @@ else
         }
     }
 
+    public void FirstMoveMineMove(int i, int j)
+    {
+        //On first move, change the locations of mine of they are located on, or near the first square
+        int[,] directions = new int[,]
+        {
+        { -1, -1 }, { -1, 0 }, { -1, 1 },
+        { 0, -1 },  { 0 , 0 }, { 0, 1 },
+        { 1, -1 },  { 1, 0 },  { 1, 1 }
+        };
+
+        for (int k = 0; k < directions.GetLength(0); k++)
+        {
+            int newRow = i + directions[k, 0];
+            int newCol = j + directions[k, 1];
+
+            if (IsOnMap(newRow, newCol) && map[newRow][newCol].IsMine())
+            {
+                if (map[i][j].NoLongerMine())
+                {
+                    PlaceMine();
+                }
+
+            }
+        }//Note will not gurantee same tile do not become mines again because does not check, could check but could cause a recursion issue
+
+        firstMove = false;
+    }
+
     private void CheckTile(int i, int j)
     {
         if (map[i][j].IsFlagged())
@@ -202,6 +241,10 @@ else
 
     private void CheckMine(int i, int j)
     {
+        if (firstMove)
+        {
+            FirstMoveMineMove(i, j);
+        }
         // Logging for debugging
         Console.WriteLine($"Button clicked at ({i}, {j})");
         map[i][j].Reveal();
